@@ -34,6 +34,7 @@
 
         <div class="top-actions">
             <span id="clock">00:00:00</span>
+            <button type="button" id="shortcutsBtn" class="icon-btn" data-i18n-title="shortcuts">⌨</button>
             <button type="button" class="language-btn" id="languageBtn" data-i18n-title="switchLanguage">ع</button>
             <button type="button" id="themeBtn" class="icon-btn" data-i18n-title="toggleTheme">☾</button>
         </div>
@@ -84,6 +85,7 @@
                 <button type="button" class="tool active" data-tool="tasks">✓ <span data-i18n="myTasks">My Tasks</span></button>
                 <button type="button" class="tool" data-tool="calculator">⌗ <span data-i18n="calculator">Calculator</span></button>
                 <button type="button" class="tool" data-tool="timer">◷ <span data-i18n="focusTimer">Focus Timer</span></button>
+                <button type="button" class="tool" data-tool="insights">▥ <span data-i18n="insights">Insights</span></button>
             </nav>
         </aside>
 
@@ -133,6 +135,7 @@
 
                     <div class="add-row" id="addRow">
                         <input id="taskInput" type="text" maxlength="120" data-i18n-placeholder="taskPlaceholder" placeholder="What needs to be done?">
+                        <input id="taskDue" type="date" data-i18n-title="dueDate">
                         <select id="priority">
                             <option value="low" data-i18n="low">Low</option>
                             <option value="medium" data-i18n="medium" selected>Medium</option>
@@ -199,30 +202,97 @@
                     <span class="eyebrow" data-i18n="focusMode">FOCUS MODE</span>
                     <h3 data-i18n="timerTitle">Focus Timer</h3>
 
-                    <div id="timerDisplay">25:00</div>
+                    <div class="timer-layout">
+                        <div class="timer-main">
+                            <div class="timer-ring">
+                                <svg viewBox="0 0 120 120" aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="timerGradient" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0" stop-color="var(--cyan)"/>
+                                            <stop offset="1" stop-color="var(--indigo)"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="timer-track" cx="60" cy="60" r="54"/>
+                                    <circle class="timer-progress" id="timerProgress" cx="60" cy="60" r="54"/>
+                                </svg>
+                                <div id="timerDisplay">25:00</div>
+                            </div>
 
-                    <div class="timer-controls">
-                        <button type="button" id="startTimer" class="primary">Start focus</button>
-                        <button type="button" id="resetTimer" data-i18n="reset">Reset</button>
-                    </div>
+                            <div class="timer-controls">
+                                <button type="button" id="startTimer" class="primary">Start focus</button>
+                                <button type="button" id="resetTimer" data-i18n="reset">Reset</button>
+                            </div>
 
-                    <div class="presets">
-                        <button type="button" data-min="5" data-i18n="minutes5">5 min</button>
-                        <button type="button" data-min="15" data-i18n="minutes15">15 min</button>
-                        <button type="button" data-min="25" data-i18n="minutes25">25 min</button>
-                        <button type="button" data-min="45" data-i18n="minutes45">45 min</button>
-                    </div>
-
-                    <div class="custom-timer">
-                        <span class="custom-title" data-i18n="customTime">Custom Time</span>
-                        <div class="custom-inputs">
-                            <input id="customHours" type="number" min="0" max="23" data-i18n-placeholder="hours" placeholder="Hours">
-                            <span>:</span>
-                            <input id="customMinutes" type="number" min="0" max="59" data-i18n-placeholder="minutes" placeholder="Minutes">
-                            <span>:</span>
-                            <input id="customSeconds" type="number" min="0" max="59" data-i18n-placeholder="seconds" placeholder="Seconds">
+                            <p class="session-count" id="sessionCount"></p>
                         </div>
-                        <button type="button" id="setCustomTimer" class="primary" data-i18n="setTime">Set Time</button>
+
+                        <div class="timer-side">
+                            <div class="presets">
+                                <button type="button" data-min="5" data-i18n="minutes5">5 min</button>
+                                <button type="button" data-min="15" data-i18n="minutes15">15 min</button>
+                                <button type="button" data-min="25" data-i18n="minutes25">25 min</button>
+                                <button type="button" data-min="45" data-i18n="minutes45">45 min</button>
+                            </div>
+
+                            <div class="custom-timer">
+                                <span class="custom-title" data-i18n="customTime">Custom Time</span>
+                                <div class="custom-inputs">
+                                    <input id="customHours" type="number" min="0" max="23" data-i18n-placeholder="hours" placeholder="Hours">
+                                    <span>:</span>
+                                    <input id="customMinutes" type="number" min="0" max="59" data-i18n-placeholder="minutes" placeholder="Minutes">
+                                    <span>:</span>
+                                    <input id="customSeconds" type="number" min="0" max="59" data-i18n-placeholder="seconds" placeholder="Seconds">
+                                </div>
+                                <button type="button" id="setCustomTimer" class="primary" data-i18n="setTime">Set Time</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Insights -->
+            <section id="insightsView" class="view hidden">
+                <div class="utility glass insights">
+                    <span class="eyebrow" data-i18n="insightsEyebrow">YOUR WEEK</span>
+                    <h3 data-i18n="insightsTitle">Insights</h3>
+
+                    <div class="insight-cards">
+                        <div class="insight-card">
+                            <span class="insight-icon">✓</span>
+                            <b id="statToday">0</b>
+                            <span data-i18n="completedToday">Completed today</span>
+                        </div>
+                        <div class="insight-card">
+                            <span class="insight-icon">🔥</span>
+                            <b id="statStreak">0</b>
+                            <span data-i18n="dayStreak">Day streak</span>
+                        </div>
+                        <div class="insight-card">
+                            <span class="insight-icon">◷</span>
+                            <b id="statFocus">0</b>
+                            <span data-i18n="focusMinutes">Focus minutes today</span>
+                        </div>
+                        <div class="insight-card">
+                            <span class="insight-icon">◔</span>
+                            <b id="statRate">0%</b>
+                            <span data-i18n="completionRate">Completion rate</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-grid">
+                        <div class="chart-card">
+                            <div class="card-head">
+                                <strong data-i18n="last7Days">Last 7 days</strong>
+                                <small id="weekTotal"></small>
+                            </div>
+                            <div id="weekChart" class="week-chart"></div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="card-head">
+                                <strong data-i18n="pendingByPriority">Pending by priority</strong>
+                            </div>
+                            <div id="priorityBars" class="priority-bars"></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -231,7 +301,10 @@
     </main>
 
     <!-- Toast -->
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <span id="toastText"></span>
+        <button type="button" id="toastAction" class="toast-action" hidden></button>
+    </div>
 
     <!-- "Nothing to delete" modal -->
     <div id="deleteModal" class="delete-modal">
@@ -239,7 +312,26 @@
             <div class="delete-modal-icon">✓</div>
             <h3 data-i18n="nothingDelete">Nothing to delete</h3>
             <p data-i18n="noCompleted">You have no completed tasks yet.</p>
-            <button type="button" id="closeDeleteModal" class="modal-close-btn" data-i18n="gotIt">Got it</button>
+            <button type="button" class="modal-close-btn" data-i18n="gotIt">Got it</button>
+        </div>
+    </div>
+
+    <!-- Keyboard shortcuts modal -->
+    <div id="shortcutsModal" class="delete-modal">
+        <div class="delete-modal-box shortcuts-box" role="dialog" aria-modal="true">
+            <div class="delete-modal-icon">⌨</div>
+            <h3 data-i18n="shortcuts">Keyboard shortcuts</h3>
+            <ul class="shortcut-list">
+                <li><span data-i18n="scNew">New task</span><kbd>N</kbd></li>
+                <li><span data-i18n="scSearch">Search tasks</span><kbd>/</kbd></li>
+                <li><span data-i18n="scTools">Switch tools</span><span><kbd>1</kbd> – <kbd>4</kbd></span></li>
+                <li><span data-i18n="scTimer">Start / pause timer</span><kbd>Space</kbd></li>
+                <li><span data-i18n="scTheme">Toggle theme</span><kbd>T</kbd></li>
+                <li><span data-i18n="scLanguage">Switch language</span><kbd>L</kbd></li>
+                <li><span data-i18n="scHelp">Show shortcuts</span><kbd>?</kbd></li>
+                <li><span data-i18n="scClose">Close / cancel</span><kbd>Esc</kbd></li>
+            </ul>
+            <button type="button" class="modal-close-btn" data-i18n="gotIt">Got it</button>
         </div>
     </div>
 
