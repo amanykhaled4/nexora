@@ -144,6 +144,7 @@ const translations = {
         remaining: (count) => `${count} ${count === 1 ? "task" : "tasks"} remaining`,
         overdueCount: (count) => `${count} overdue`,
         calculatorTitle: "Calculator",
+        calcError: "Error",
         timerTitle: "Focus Timer",
         startFocus: "Start focus",
         pause: "Pause",
@@ -246,6 +247,7 @@ const translations = {
         remaining: (count) => `${count} ${count === 1 ? "مهمة متبقية" : "مهام متبقية"}`,
         overdueCount: (count) => `${count} متأخرة`,
         calculatorTitle: "الحاسبة",
+        calcError: "خطأ",
         timerTitle: "مؤقت التركيز",
         startFocus: "بدء التركيز",
         pause: "إيقاف مؤقت",
@@ -292,7 +294,8 @@ function t() {
 }
 
 function locale() {
-    return currentLanguage === "ar" ? "ar-EG" : "en-US";
+    // Arabic text with Western digits (1, 2, 3), so numbers look the same everywhere
+    return currentLanguage === "ar" ? "ar-EG-u-nu-latn" : "en-US";
 }
 
 
@@ -939,7 +942,7 @@ function pressCalc(value) {
             showingResult = true;
         } catch {
             calcExpression = "";
-            calcDisplay.value = "Error";
+            calcDisplay.value = t().calcError;
         }
         return;
     }
