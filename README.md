@@ -2,7 +2,7 @@
 
 A bilingual (English / Arabic) productivity dashboard built with **vanilla HTML, CSS and JavaScript**: no frameworks, no libraries, no build step.
 
-🔗 **Live demo:** _coming soon_
+🔗 **Live demo:** https://amanykhaled4.github.io/nexora/
 
 ## Features
 
