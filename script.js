@@ -2,1134 +2,188 @@
    NEXORA — SCRIPT
 ========================================= */
 
-
-/* =========================================
-   DATA
-========================================= */
-
-let tasks =
-    JSON.parse(
-        localStorage.getItem("nexoraTasks")
-    ) || [];
-
-let timerInterval = null;
-let timerSeconds = 25 * 60;
+const $ = (id) => document.getElementById(id);
 
 
 /* =========================================
-   ELEMENTS
+   STORAGE
 ========================================= */
 
-const taskList =
-    document.getElementById("taskList");
+function load(key, fallback) {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
 
-const taskInput =
-    document.getElementById("taskInput");
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return raw;   // older versions saved plain strings like "light"
+    }
+}
 
-const priority =
-    document.getElementById("priority");
+function save(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
 
-const addBtn =
-    document.getElementById("addBtn");
-
-const addRow =
-    document.getElementById("addRow");
-
-const saveTask =
-    document.getElementById("saveTask");
-
-const search =
-    document.getElementById("search");
-
-const statusFilter =
-    document.getElementById("statusFilter");
-
-const priorityFilter =
-    document.getElementById("priorityFilter");
-
-const totalCount =
-    document.getElementById("totalCount");
-
-const doneCount =
-    document.getElementById("doneCount");
-
-const pendingCount =
-    document.getElementById("pendingCount");
-
-const progressPercent =
-    document.getElementById("progressPercent");
-
-const progressText =
-    document.getElementById("progressText");
-
-const ring =
-    document.getElementById("ring");
-
-const taskSubtitle =
-    document.getElementById("taskSubtitle");
-
-const toast =
-    document.getElementById("toast");
-
-const clearDone =
-    document.getElementById("clearDone");
-
-const deleteModal =
-    document.getElementById("deleteModal");
-
-const closeDeleteModal =
-    document.getElementById("closeDeleteModal");
-
-const themeBtn =
-    document.getElementById("themeBtn");
-
-const languageBtn =
-    document.getElementById("languageBtn");
-
-const clock =
-    document.getElementById("clock");
-
-const greeting =
-    document.getElementById("greeting");
-
-const date =
-    document.getElementById("date");
+let tasks = load("nexoraTasks", []);
+if (!Array.isArray(tasks)) tasks = [];
+let currentLanguage = load("nexoraLanguage", "en");
+let editingId = null;
 
 
 /* =========================================
-   LANGUAGE
+   TRANSLATIONS
 ========================================= */
-
-let currentLanguage =
-    localStorage.getItem("nexoraLanguage") || "en";
-
 
 const translations = {
-
-    /* =====================================
-       ENGLISH
-    ===================================== */
-
     en: {
-
         langButton: "ع",
-
+        switchLanguage: "التبديل إلى العربية",
+        toggleTheme: "Toggle theme",
         welcome: "WELCOME",
-
-        welcomeTitle1:
-            "Stay focused",
-
-        welcomeTitle2:
-            "Get things done",
-
-        welcomeText:
-            "Simple tools for a productive day",
-
-        progressComplete:
-            "complete",
-
-        progressTitle:
-            "Today's progress",
-
-        total:
-            "Total",
-
-        done:
-            "Done",
-
-        pending:
-            "Pending",
-
-        myTasks:
-            "My Tasks",
-
-        calculator:
-            "Calculator",
-
-        focusTimer:
-            "Focus Timer",
-
-        workspace:
-            "YOUR WORKSPACE",
-
-        heroText:
-            "Plan your tasks and Stay focused",
-
-        quickTool:
-            "QUICK TOOL",
-
-        focusMode:
-            "FOCUS MODE",
-
-        taskTitle:
-            "My Tasks",
-
-        taskFirst:
-            "Add your first task",
-
-        addTask:
-            "+ Add Task",
-
-        saveTask:
-            "Add",
-
-        taskPlaceholder:
-            "What needs to be done?",
-
-        search:
-            "⌕ Search tasks...",
-
-        allTasks:
-            "All tasks",
-
-        active:
-            "Active",
-
-        completed:
-            "Completed",
-
-        allPriorities:
-            "All priorities",
-
-        high:
-            "High",
-
-        medium:
-            "Medium",
-
-        low:
-            "Low",
-
-        deleteCompleted:
-            "Delete completed",
-
-        noTasks:
-            "No tasks found",
-
-        noTasksSmall:
-            "Add a task to get started",
-
-        taskAdded:
-            "Task added successfully",
-
-        taskDeleted:
-            "Task deleted",
-
-        completedDeleted:
-            "Completed tasks deleted",
-
-        enterTask:
-            "Please enter a task",
-
-        allCompleted:
-            "All tasks completed!",
-
-        remainingOne:
-            "task remaining",
-
-        remainingMany:
-            "tasks remaining",
-
-        calculatorTitle:
-            "Calculator",
-
-        timerTitle:
-            "Focus Timer",
-
-        startFocus:
-            "Start focus",
-
-        pause:
-            "Pause",
-
-        reset:
-            "Reset",
-
-        minutes5:
-            "5 min",
-
-        minutes15:
-            "15 min",
-
-        minutes25:
-            "25 min",
-
-        minutes45:
-            "45 min",
-
-        focusComplete:
-            "Focus session complete!",
-
-        nothingDelete:
-            "Nothing to delete",
-
-        noCompleted:
-            "You have no completed tasks yet.",
-
-        gotIt:
-            "Got it"
-
+        welcomeTitle1: "Stay focused",
+        welcomeTitle2: "Get things done",
+        welcomeText: "Simple tools for a productive day",
+        progressComplete: "complete",
+        progressTitle: "Today's progress",
+        progressText: (done, total) => `${done} of ${total} tasks`,
+        total: "Total",
+        done: "Done",
+        pending: "Pending",
+        myTasks: "My Tasks",
+        calculator: "Calculator",
+        focusTimer: "Focus Timer",
+        workspace: "YOUR WORKSPACE",
+        heroText: "Plan your tasks and stay focused",
+        morning: "Good morning",
+        afternoon: "Good afternoon",
+        evening: "Good evening",
+        quickTool: "QUICK TOOL",
+        focusMode: "FOCUS MODE",
+        taskTitle: "My Tasks",
+        taskFirst: "Add your first task",
+        addTask: "+ Add Task",
+        saveTask: "Add",
+        taskPlaceholder: "What needs to be done?",
+        search: "⌕ Search tasks...",
+        allTasks: "All tasks",
+        active: "Active",
+        completed: "Completed",
+        allPriorities: "All priorities",
+        high: "High",
+        medium: "Medium",
+        low: "Low",
+        deleteCompleted: "Delete completed",
+        noTasks: "No tasks found",
+        noTasksSmall: "Add a task to get started",
+        taskAdded: "Task added successfully",
+        taskUpdated: "Task updated",
+        taskDeleted: "Task deleted",
+        taskCompleted: "🎉 Great job! Task completed",
+        completedDeleted: "Completed tasks deleted",
+        enterTask: "Please enter a task",
+        editTask: "Edit task",
+        deleteTask: "Delete task",
+        allCompleted: "All tasks completed!",
+        remaining: (count) => `${count} ${count === 1 ? "task" : "tasks"} remaining`,
+        calculatorTitle: "Calculator",
+        timerTitle: "Focus Timer",
+        startFocus: "Start focus",
+        pause: "Pause",
+        reset: "Reset",
+        minutes5: "5 min",
+        minutes15: "15 min",
+        minutes25: "25 min",
+        minutes45: "45 min",
+        customTime: "Custom Time",
+        hours: "Hours",
+        minutes: "Minutes",
+        seconds: "Seconds",
+        setTime: "Set Time",
+        setTimeFirst: "Please set a time first",
+        focusComplete: "Focus session complete!",
+        nothingDelete: "Nothing to delete",
+        noCompleted: "You have no completed tasks yet.",
+        gotIt: "Got it"
     },
 
-
-    /* =====================================
-       ARABIC
-    ===================================== */
-
     ar: {
-
-        langButton:
-            "EN",
-
-        welcome:
-            "مرحبًا",
-
-        welcomeTitle1:
-            "حافظ على تركيزك",
-
-        welcomeTitle2:
-            "أنجز المهام",
-
-        welcomeText:
-            "أدوات بسيطة ليوم أكثر إنتاجية",
-
-        progressComplete:
-            "مكتمل",
-
-        progressTitle:
-            "تقدم اليوم",
-
-        total:
-            "الإجمالي",
-
-        done:
-            "تم الإنجاز",
-
-        pending:
-            "متبقي",
-
-        myTasks:
-            "المهام",
-
-        calculator:
-            "الحاسبة",
-
-        focusTimer:
-            "مؤقت التركيز",
-
-        workspace:
-            "مساحة العمل",
-
-        heroText:
-            "خطط للمهام وحافظ على التركيز",
-
-        quickTool:
-            "أداة سريعة",
-
-        focusMode:
-            "وضع التركيز",
-
-        taskTitle:
-            "المهام",
-
-        taskFirst:
-            "ابدأ بإضافة أول مهمة",
-
-        addTask:
-            "+ إضافة مهمة",
-
-        saveTask:
-            "إضافة",
-
-        taskPlaceholder:
-            "ما الذي يجب إنجازه؟",
-
-        search:
-            "⌕ البحث عن المهام...",
-
-        allTasks:
-            "كل المهام",
-
-        active:
-            "غير مكتملة",
-
-        completed:
-            "مكتملة",
-
-        allPriorities:
-            "كل الأولويات",
-
-        high:
-            "أولوية عالية",
-
-        medium:
-            "أولوية متوسطة",
-
-        low:
-            "أولوية منخفضة",
-
-        deleteCompleted:
-            "حذف المهام المكتملة",
-
-        noTasks:
-            "لا توجد مهام",
-
-        noTasksSmall:
-            "ابدأ بإضافة مهمة",
-
-        taskAdded:
-            "تمت إضافة المهمة بنجاح",
-
-        taskDeleted:
-            "تم حذف المهمة",
-
-        completedDeleted:
-            "تم حذف المهام المكتملة",
-
-        enterTask:
-            "يرجى إدخال مهمة",
-
-        allCompleted:
-            "تم إنجاز جميع المهام!",
-
-        remainingOne:
-            "مهمة متبقية",
-
-        remainingMany:
-            "مهام متبقية",
-
-        calculatorTitle:
-            "الحاسبة",
-
-        timerTitle:
-            "مؤقت التركيز",
-
-        startFocus:
-            "بدء التركيز",
-
-        pause:
-            "إيقاف",
-
-        reset:
-            "إعادة ضبط",
-
-        minutes5:
-            "5 دقائق",
-
-        minutes15:
-            "15 دقيقة",
-
-        minutes25:
-            "25 دقيقة",
-
-        minutes45:
-            "45 دقيقة",
-
-        focusComplete:
-            "انتهت جلسة التركيز!",
-
-        nothingDelete:
-            "لا يوجد ما يمكن حذفه",
-
-        noCompleted:
-            "لا توجد مهام مكتملة حتى الآن.",
-
-        gotIt:
-            "حسنًا"
-
+        langButton: "EN",
+        switchLanguage: "Switch to English",
+        toggleTheme: "تغيير المظهر",
+        welcome: "مرحبًا",
+        welcomeTitle1: "حافظ على تركيزك",
+        welcomeTitle2: "أنجز مهامك",
+        welcomeText: "أدوات بسيطة ليوم أكثر إنتاجية",
+        progressComplete: "مكتمل",
+        progressTitle: "تقدم اليوم",
+        progressText: (done, total) => `${done} من ${total} مهام`,
+        total: "الإجمالي",
+        done: "تم الإنجاز",
+        pending: "متبقي",
+        myTasks: "المهام",
+        calculator: "الحاسبة",
+        focusTimer: "مؤقت التركيز",
+        workspace: "مساحة العمل",
+        heroText: "خطط لمهامك وحافظ على تركيزك",
+        morning: "صباح الخير",
+        afternoon: "مساء الخير",
+        evening: "مساء الخير",
+        quickTool: "أداة سريعة",
+        focusMode: "وضع التركيز",
+        taskTitle: "المهام",
+        taskFirst: "ابدأ بإضافة أول مهمة",
+        addTask: "+ إضافة مهمة",
+        saveTask: "إضافة",
+        taskPlaceholder: "ما الذي يجب إنجازه؟",
+        search: "⌕ البحث عن المهام...",
+        allTasks: "كل المهام",
+        active: "غير مكتملة",
+        completed: "مكتملة",
+        allPriorities: "كل الأولويات",
+        high: "أولوية عالية",
+        medium: "أولوية متوسطة",
+        low: "أولوية منخفضة",
+        deleteCompleted: "حذف المهام المكتملة",
+        noTasks: "لا توجد مهام",
+        noTasksSmall: "ابدأ بإضافة مهمة",
+        taskAdded: "تمت إضافة المهمة بنجاح",
+        taskUpdated: "تم تعديل المهمة",
+        taskDeleted: "تم حذف المهمة",
+        taskCompleted: "🎉 عمل رائع! تم إنجاز المهمة",
+        completedDeleted: "تم حذف المهام المكتملة",
+        enterTask: "يرجى إدخال مهمة",
+        editTask: "تعديل المهمة",
+        deleteTask: "حذف المهمة",
+        allCompleted: "تم إنجاز جميع المهام!",
+        remaining: (count) => `${count} ${count === 1 ? "مهمة متبقية" : "مهام متبقية"}`,
+        calculatorTitle: "الحاسبة",
+        timerTitle: "مؤقت التركيز",
+        startFocus: "بدء التركيز",
+        pause: "إيقاف مؤقت",
+        reset: "إعادة ضبط",
+        minutes5: "5 دقائق",
+        minutes15: "15 دقيقة",
+        minutes25: "25 دقيقة",
+        minutes45: "45 دقيقة",
+        customTime: "وقت مخصص",
+        hours: "ساعات",
+        minutes: "دقائق",
+        seconds: "ثوانٍ",
+        setTime: "ضبط الوقت",
+        setTimeFirst: "يرجى تحديد الوقت أولًا",
+        focusComplete: "انتهت جلسة التركيز!",
+        nothingDelete: "لا يوجد ما يمكن حذفه",
+        noCompleted: "لا توجد مهام مكتملة حتى الآن.",
+        gotIt: "حسنًا"
     }
-
 };
 
-
-/* =========================================
-   GET CURRENT TRANSLATION
-========================================= */
-
 function t() {
-
-    return translations[currentLanguage];
-
+    return translations[currentLanguage] || translations.en;
 }
 
-
-/* =========================================
-   SAVE DATA
-========================================= */
-
-function saveData() {
-
-    localStorage.setItem(
-        "nexoraTasks",
-        JSON.stringify(tasks)
-    );
-
-}
-
-
-/* =========================================
-   ESCAPE HTML
-========================================= */
-
-function escapeHTML(text) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent = text;
-
-    return div.innerHTML;
-
-}
-
-
-/* =========================================
-   PRIORITY TRANSLATION
-========================================= */
-
-function translatePriority(value) {
-
-    if (currentLanguage === "ar") {
-
-        if (value === "high")
-            return t().high;
-
-        if (value === "medium")
-            return t().medium;
-
-        if (value === "low")
-            return t().low;
-
-    }
-
-    return value.charAt(0).toUpperCase() +
-           value.slice(1);
-
-}
-
-
-/* =========================================
-   RENDER TASKS
-========================================= */
-
-function renderTasks() {
-
-    taskList.innerHTML = "";
-
-    let filtered = [...tasks];
-
-
-    /* Search */
-
-    const searchValue =
-        search.value
-            .toLowerCase()
-            .trim();
-
-
-    if (searchValue) {
-
-        filtered =
-            filtered.filter(task =>
-                task.text
-                    .toLowerCase()
-                    .includes(searchValue)
-            );
-
-    }
-
-
-    /* Status */
-
-    const status =
-        statusFilter.value;
-
-
-    if (status === "active") {
-
-        filtered =
-            filtered.filter(task =>
-                !task.done
-            );
-
-    }
-
-
-    if (status === "completed") {
-
-        filtered =
-            filtered.filter(task =>
-                task.done
-            );
-
-    }
-
-
-    /* Priority */
-
-    const priorityValue =
-        priorityFilter.value;
-
-
-    if (priorityValue !== "all") {
-
-        filtered =
-            filtered.filter(task =>
-                task.priority === priorityValue
-            );
-
-    }
-
-
-    /* Empty */
-
-    if (filtered.length === 0) {
-
-        taskList.innerHTML = `
-
-            <div class="empty">
-
-                ${t().noTasks}
-
-                <small>
-                    ${t().noTasksSmall}
-                </small>
-
-            </div>
-
-        `;
-
-        updateStats();
-
-        return;
-
-    }
-
-
-    /* Create Tasks */
-
-    filtered.forEach(task => {
-
-        const div =
-            document.createElement("div");
-
-
-        div.className =
-            `task ${task.done ? "done" : ""}`;
-
-
-        div.innerHTML = `
-
-            <button
-                class="check"
-                data-id="${task.id}">
-
-                ${task.done ? "✓" : ""}
-
-            </button>
-
-
-            <div>
-
-                <div class="task-name">
-
-                    ${escapeHTML(task.text)}
-
-                </div>
-
-
-                <div class="task-meta">
-
-                    <span
-                        class="badge ${task.priority}">
-
-                        ${translatePriority(
-                            task.priority
-                        )}
-
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="task-actions">
-
-                <button
-                    class="delete-task"
-                    data-id="${task.id}"
-                    title="Delete task">
-
-                    🗑
-
-                </button>
-
-            </div>
-
-        `;
-
-
-        taskList.appendChild(div);
-
-    });
-
-
-    updateStats();
-
-}
-
-
-/* =========================================
-   ADD TASK
-========================================= */
-
-function addTask() {
-
-    const text =
-        taskInput.value.trim();
-
-
-    if (!text) {
-
-        showToast(
-            t().enterTask
-        );
-
-        taskInput.focus();
-
-        return;
-
-    }
-
-
-    tasks.push({
-
-        id:
-            Date.now(),
-
-        text:
-            text,
-
-        priority:
-            priority.value,
-
-        done:
-            false,
-
-        createdAt:
-            new Date().toISOString(),
-
-        completedAt:
-            null
-
-    });
-
-
-    saveData();
-
-    taskInput.value = "";
-
-    addRow.classList.remove("open");
-
-    renderTasks();
-
-    showToast(
-        t().taskAdded
-    );
-
-}
-
-
-/* =========================================
-   TOGGLE TASK
-========================================= */
-
-function toggleTask(id) {
-
-    let newDoneState = false;
-
-
-    tasks =
-        tasks.map(task => {
-
-            if (task.id === id) {
-
-                newDoneState =
-                    !task.done;
-
-
-                return {
-
-                    ...task,
-
-                    done:
-                        newDoneState,
-
-                    completedAt:
-                        newDoneState
-                            ? new Date().toISOString()
-                            : null
-
-                };
-
-            }
-
-
-            return task;
-
-        });
-
-
-    saveData();
-
-    renderTasks();
-
-
-    if (newDoneState) {
-
-        const message =
-            currentLanguage === "ar"
-                ? "🎉 أحسنتِ! تم إنجاز المهمة"
-                : "🎉 Great job! Task completed";
-
-        showToast(message);
-
-    }
-
-}
-
-
-/* =========================================
-   DELETE SINGLE TASK
-========================================= */
-
-function deleteTask(id) {
-
-    tasks =
-        tasks.filter(
-            task => task.id !== id
-        );
-
-
-    saveData();
-
-    renderTasks();
-
-    showToast(
-        t().taskDeleted
-    );
-
-}
-
-
-/* =========================================
-   DELETE COMPLETED
-========================================= */
-
-clearDone.addEventListener(
-    "click",
-    function () {
-
-        const completed =
-            tasks.filter(
-                task => task.done
-            );
-
-
-        if (completed.length === 0) {
-
-            deleteModal.classList.add(
-                "show"
-            );
-
-            return;
-
-        }
-
-
-        tasks =
-            tasks.filter(
-                task => !task.done
-            );
-
-
-        saveData();
-
-        renderTasks();
-
-        showToast(
-            t().completedDeleted
-        );
-
-    }
-);
-
-
-/* =========================================
-   CLOSE DELETE MODAL
-========================================= */
-
-closeDeleteModal.addEventListener(
-    "click",
-    function () {
-
-        deleteModal.classList.remove(
-            "show"
-        );
-
-    }
-);
-
-
-/* =========================================
-   CLICK OUTSIDE MODAL
-========================================= */
-
-deleteModal.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            event.target === deleteModal
-        ) {
-
-            deleteModal.classList.remove(
-                "show"
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   ESCAPE MODAL
-========================================= */
-
-document.addEventListener(
-    "keydown",
-    function (event) {
-
-        if (event.key === "Escape") {
-
-            deleteModal.classList.remove(
-                "show"
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   TASK EVENTS
-========================================= */
-
-taskList.addEventListener(
-    "click",
-    function (event) {
-
-        const check =
-            event.target.closest(".check");
-
-
-        const deleteButton =
-            event.target.closest(
-                ".delete-task"
-            );
-
-
-        if (check) {
-
-            const id =
-                Number(
-                    check.dataset.id
-                );
-
-            toggleTask(id);
-
-        }
-
-
-        if (deleteButton) {
-
-            const id =
-                Number(
-                    deleteButton.dataset.id
-                );
-
-            deleteTask(id);
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   ADD BUTTON
-========================================= */
-
-addBtn.addEventListener(
-    "click",
-    function () {
-
-        addRow.classList.toggle(
-            "open"
-        );
-
-
-        if (
-            addRow.classList.contains("open")
-        ) {
-
-            taskInput.focus();
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   SAVE BUTTON
-========================================= */
-
-saveTask.addEventListener(
-    "click",
-    addTask
-);
-
-
-/* =========================================
-   ENTER TO ADD
-========================================= */
-
-taskInput.addEventListener(
-    "keydown",
-    function (event) {
-
-        if (event.key === "Enter") {
-
-            addTask();
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   FILTERS
-========================================= */
-
-search.addEventListener(
-    "input",
-    renderTasks
-);
-
-statusFilter.addEventListener(
-    "change",
-    renderTasks
-);
-
-priorityFilter.addEventListener(
-    "change",
-    renderTasks
-);
-
-
-/* =========================================
-   STATISTICS
-========================================= */
-
-function updateStats() {
-
-    const total =
-        tasks.length;
-
-
-    const done =
-        tasks.filter(
-            task => task.done
-        ).length;
-
-
-    const pending =
-        total - done;
-
-
-    totalCount.textContent =
-        total;
-
-    doneCount.textContent =
-        done;
-
-    pendingCount.textContent =
-        pending;
-
-
-    const percent =
-        total === 0
-            ? 0
-            : Math.round(
-                (done / total) * 100
-            );
-
-
-    progressPercent.textContent =
-        `${percent}%`;
-
-
-    if (currentLanguage === "ar") {
-
-        progressText.textContent =
-            `${done} من ${total} مهام`;
-
-    }
-
-    else {
-
-        progressText.textContent =
-            `${done} of ${total} tasks`;
-
-    }
-
-
-    ring.style.setProperty(
-        "--p",
-        `${percent}%`
-    );
-
-
-    if (total === 0) {
-
-        taskSubtitle.textContent =
-            t().taskFirst;
-
-    }
-
-    else if (pending === 0) {
-
-        taskSubtitle.textContent =
-            t().allCompleted;
-
-    }
-
-    else {
-
-        taskSubtitle.textContent =
-            `${pending} ${
-                pending === 1
-                    ? t().remainingOne
-                    : t().remainingMany
-            }`;
-
-    }
-
+function locale() {
+    return currentLanguage === "ar" ? "ar-EG" : "en-US";
 }
 
 
@@ -1137,272 +191,325 @@ function updateStats() {
    TOAST
 ========================================= */
 
+const toast = $("toast");
 let toastTimer;
 
-
 function showToast(message) {
-
-    toast.textContent =
-        message;
-
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimer
-    );
-
-
-    toastTimer =
-        setTimeout(
-            function () {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-            2200
-        );
-
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
 
 /* =========================================
-   CLOCK
+   TASKS
+========================================= */
+
+const taskList = $("taskList");
+const taskInput = $("taskInput");
+const priority = $("priority");
+const addRow = $("addRow");
+const search = $("search");
+const statusFilter = $("statusFilter");
+const priorityFilter = $("priorityFilter");
+const deleteModal = $("deleteModal");
+
+function escapeHTML(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function saveTasks() {
+    save("nexoraTasks", tasks);
+}
+
+function findTask(id) {
+    return tasks.find((task) => String(task.id) === String(id));
+}
+
+function getFilteredTasks() {
+    const query = search.value.toLowerCase().trim();
+    const status = statusFilter.value;
+    const level = priorityFilter.value;
+
+    return tasks.filter((task) =>
+        (!query || task.text.toLowerCase().includes(query)) &&
+        (status === "all" || (status === "completed") === task.done) &&
+        (level === "all" || task.priority === level)
+    );
+}
+
+function renderTasks() {
+    const lang = t();
+    const filtered = getFilteredTasks();
+
+    if (filtered.length === 0) {
+        taskList.innerHTML = `
+            <div class="empty">
+                ${lang.noTasks}
+                <small>${lang.noTasksSmall}</small>
+            </div>`;
+    } else {
+        taskList.innerHTML = filtered.map((task) => `
+            <div class="task ${task.done ? "done" : ""}" data-id="${task.id}">
+                <button type="button" class="check" aria-label="${escapeHTML(task.text)}">
+                    ${task.done ? "✓" : ""}
+                </button>
+                <div>
+                    ${String(task.id) === String(editingId)
+                        ? `<input class="task-edit" maxlength="120" value="${escapeHTML(task.text)}">`
+                        : `<div class="task-name">${escapeHTML(task.text)}</div>`}
+                    <div class="task-meta">
+                        <span class="badge ${task.priority}">${lang[task.priority]}</span>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button type="button" class="edit-task" title="${lang.editTask}" aria-label="${lang.editTask}">✎</button>
+                    <button type="button" class="delete-task" title="${lang.deleteTask}" aria-label="${lang.deleteTask}">🗑</button>
+                </div>
+            </div>`).join("");
+    }
+
+    const editInput = taskList.querySelector(".task-edit");
+    if (editInput) {
+        editInput.focus();
+        editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+    }
+
+    updateStats();
+}
+
+function addTask() {
+    const text = taskInput.value.trim();
+
+    if (!text) {
+        showToast(t().enterTask);
+        taskInput.focus();
+        return;
+    }
+
+    tasks.push({
+        id: Date.now(),
+        text,
+        priority: priority.value,
+        done: false,
+        createdAt: new Date().toISOString(),
+        completedAt: null
+    });
+
+    saveTasks();
+    taskInput.value = "";
+    addRow.classList.remove("open");
+    renderTasks();
+    showToast(t().taskAdded);
+}
+
+function toggleTask(id) {
+    const task = findTask(id);
+    if (!task) return;
+
+    task.done = !task.done;
+    task.completedAt = task.done ? new Date().toISOString() : null;
+
+    saveTasks();
+    renderTasks();
+
+    if (task.done) showToast(t().taskCompleted);
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter((task) => String(task.id) !== String(id));
+    saveTasks();
+    renderTasks();
+    showToast(t().taskDeleted);
+}
+
+function startEditing(id) {
+    editingId = id;
+    renderTasks();
+}
+
+function finishEditing(input, keepChanges) {
+    if (editingId === null) return;
+
+    const task = findTask(editingId);
+    const text = input.value.trim();
+    editingId = null;
+
+    if (keepChanges && task && text && text !== task.text) {
+        task.text = text;
+        saveTasks();
+        showToast(t().taskUpdated);
+    }
+
+    renderTasks();
+}
+
+function clearCompleted() {
+    if (!tasks.some((task) => task.done)) {
+        deleteModal.classList.add("show");
+        return;
+    }
+
+    tasks = tasks.filter((task) => !task.done);
+    saveTasks();
+    renderTasks();
+    showToast(t().completedDeleted);
+}
+
+function updateStats() {
+    const lang = t();
+    const total = tasks.length;
+    const done = tasks.filter((task) => task.done).length;
+    const pending = total - done;
+    const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+    $("totalCount").textContent = total;
+    $("doneCount").textContent = done;
+    $("pendingCount").textContent = pending;
+    $("progressPercent").textContent = `${percent}%`;
+    $("progressText").textContent = lang.progressText(done, total);
+    $("ring").style.setProperty("--p", `${percent}%`);
+
+    $("taskSubtitle").textContent =
+        total === 0 ? lang.taskFirst :
+        pending === 0 ? lang.allCompleted :
+        lang.remaining(pending);
+}
+
+// Task list events (one listener for all tasks)
+taskList.addEventListener("click", (event) => {
+    const taskElement = event.target.closest(".task");
+    if (!taskElement) return;
+    const id = taskElement.dataset.id;
+
+    if (event.target.closest(".check")) toggleTask(id);
+    else if (event.target.closest(".edit-task")) startEditing(id);
+    else if (event.target.closest(".delete-task")) deleteTask(id);
+});
+
+taskList.addEventListener("dblclick", (event) => {
+    const name = event.target.closest(".task-name");
+    if (name) startEditing(name.closest(".task").dataset.id);
+});
+
+taskList.addEventListener("keydown", (event) => {
+    if (!event.target.classList.contains("task-edit")) return;
+    if (event.key === "Enter") finishEditing(event.target, true);
+    if (event.key === "Escape") finishEditing(event.target, false);
+});
+
+taskList.addEventListener("focusout", (event) => {
+    if (event.target.classList.contains("task-edit")) finishEditing(event.target, true);
+});
+
+$("addBtn").addEventListener("click", () => {
+    addRow.classList.toggle("open");
+    if (addRow.classList.contains("open")) taskInput.focus();
+});
+
+$("saveTask").addEventListener("click", addTask);
+
+taskInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") addTask();
+});
+
+search.addEventListener("input", renderTasks);
+statusFilter.addEventListener("change", renderTasks);
+priorityFilter.addEventListener("change", renderTasks);
+
+$("clearDone").addEventListener("click", clearCompleted);
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+function closeModal() {
+    deleteModal.classList.remove("show");
+}
+
+$("closeDeleteModal").addEventListener("click", closeModal);
+
+deleteModal.addEventListener("click", (event) => {
+    if (event.target === deleteModal) closeModal();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeModal();
+});
+
+
+/* =========================================
+   CLOCK, GREETING & DATE
 ========================================= */
 
 function updateClock() {
-
-    const now =
-        new Date();
-
-
-    clock.textContent =
-        now.toLocaleTimeString(
-            currentLanguage === "ar"
-                ? "ar-EG"
-                : "en-US",
-            {
-                hour: "numeric",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true
-            }
-        );
-
+    $("clock").textContent = new Date().toLocaleTimeString(locale(), {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
 }
-
-
-setInterval(
-    updateClock,
-    1000
-);
-
-
-/* =========================================
-   GREETING
-========================================= */
 
 function updateGreeting() {
+    const lang = t();
+    const hour = new Date().getHours();
+    const text = hour < 12 ? lang.morning : hour < 18 ? lang.afternoon : lang.evening;
 
-    const hour =
-        new Date().getHours();
-
-
-    if (currentLanguage === "ar") {
-
-        if (hour < 12) {
-
-            greeting.innerHTML =
-                'صباح الخير <span class="greeting-star">✦</span>';
-
-        }
-
-        else {
-
-            greeting.innerHTML =
-                'مساء الخير <span class="greeting-star">✦</span>';
-
-        }
-
-        return;
-
-    }
-
-
-    if (hour < 12) {
-
-        greeting.innerHTML =
-            'Good morning <span class="greeting-star">✦</span>';
-
-    }
-
-    else if (hour < 18) {
-
-        greeting.innerHTML =
-            'Good afternoon <span class="greeting-star">✦</span>';
-
-    }
-
-    else {
-
-        greeting.innerHTML =
-            'Good evening <span class="greeting-star">✦</span>';
-
-    }
-
+    $("greeting").innerHTML = `${text} <span class="greeting-star">✦</span>`;
 }
-
-
-/* =========================================
-   DATE
-========================================= */
 
 function updateDate() {
-
-    const now =
-        new Date();
-
-
-    date.textContent =
-        now.toLocaleDateString(
-            currentLanguage === "ar"
-                ? "ar-EG"
-                : "en-US",
-            {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric"
-            }
-        );
-
+    $("date").textContent = new Date().toLocaleDateString(locale(), {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
 }
+
+setInterval(updateClock, 1000);
 
 
 /* =========================================
    THEME
 ========================================= */
 
-themeBtn.addEventListener(
-    "click",
-    function () {
+const themeBtn = $("themeBtn");
 
-        document.body.classList.toggle(
-            "light"
-        );
-
-
-        const light =
-            document.body.classList.contains(
-                "light"
-            );
-
-
-        themeBtn.textContent =
-            light
-                ? "☀"
-                : "☾";
-
-
-        localStorage.setItem(
-            "nexoraTheme",
-            light
-                ? "light"
-                : "dark"
-        );
-
-    }
-);
-
-
-/* =========================================
-   LOAD SAVED THEME
-========================================= */
-
-if (
-    localStorage.getItem(
-        "nexoraTheme"
-    ) === "light"
-) {
-
-    document.body.classList.add(
-        "light"
-    );
-
-    themeBtn.textContent =
-        "☀";
-
+function applyTheme(theme) {
+    const light = theme === "light";
+    document.body.classList.toggle("light", light);
+    themeBtn.textContent = light ? "☀" : "☾";
 }
+
+themeBtn.addEventListener("click", () => {
+    const theme = document.body.classList.contains("light") ? "dark" : "light";
+    applyTheme(theme);
+    save("nexoraTheme", theme);
+});
+
+applyTheme(load("nexoraTheme", "dark"));
 
 
 /* =========================================
    NAVIGATION
 ========================================= */
 
-const tools =
-    document.querySelectorAll(".tool");
+const tools = document.querySelectorAll(".tool");
+const views = document.querySelectorAll(".view");
 
-
-const views = {
-
-    tasks:
-        document.getElementById(
-            "tasksView"
-        ),
-
-    calculator:
-        document.getElementById(
-            "calculatorView"
-        ),
-
-    timer:
-        document.getElementById(
-            "timerView"
-        )
-
-};
-
-
-tools.forEach(tool => {
-
-    tool.addEventListener(
-        "click",
-        function () {
-
-            tools.forEach(item =>
-                item.classList.remove(
-                    "active"
-                )
-            );
-
-
-            tool.classList.add(
-                "active"
-            );
-
-
-            Object.values(views)
-                .forEach(view =>
-                    view.classList.add(
-                        "hidden"
-                    )
-                );
-
-
-            views[
-                tool.dataset.tool
-            ].classList.remove(
-                "hidden"
-            );
-
-        }
-    );
-
+tools.forEach((tool) => {
+    tool.addEventListener("click", () => {
+        tools.forEach((item) => item.classList.toggle("active", item === tool));
+        views.forEach((view) =>
+            view.classList.toggle("hidden", view.id !== `${tool.dataset.tool}View`)
+        );
+    });
 });
 
 
@@ -1410,577 +517,243 @@ tools.forEach(tool => {
    CALCULATOR
 ========================================= */
 
-const calcDisplay =
-    document.getElementById(
-        "calcDisplay"
-    );
-
-
+const calcDisplay = $("calcDisplay");
+const calculatorView = $("calculatorView");
+const OPERATORS = "+-*/";
 let calcExpression = "";
+let showingResult = false;
 
+// Evaluates "+ - * /" with correct precedence, without eval()
+function calculate(expression) {
+    const tokens = expression.match(/\d*\.?\d+|[+\-*/]/g) || [];
+    const numbers = [];
+    const ops = [];
+    let expectNumber = true;
+    let sign = 1;
 
-document
-    .querySelectorAll("[data-calc]")
-    .forEach(button => {
+    const precedence = (op) => (op === "+" || op === "-" ? 1 : 2);
 
-        button.addEventListener(
-            "click",
-            function () {
+    const applyTop = () => {
+        const b = numbers.pop();
+        const a = numbers.pop();
+        const op = ops.pop();
+        if (op === "/" && b === 0) throw new Error("Division by zero");
+        numbers.push(op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : a / b);
+    };
 
-                const value =
-                    button.dataset.calc;
-
-
-                /* Clear */
-
-                if (value === "C") {
-
-                    calcExpression = "";
-
-                    calcDisplay.value =
-                        "0";
-
-                    return;
-
-                }
-
-
-                /* Backspace */
-
-                if (value === "⌫") {
-
-                    calcExpression =
-                        calcExpression.slice(
-                            0,
-                            -1
-                        );
-
-
-                    calcDisplay.value =
-                        calcExpression || "0";
-
-                    return;
-
-                }
-
-
-                /* Equals */
-
-                if (value === "=") {
-
-                    try {
-
-                        if (!calcExpression) {
-                            return;
-                        }
-
-
-                        const result =
-                            Function(
-                                `"use strict"; return (${calcExpression})`
-                            )();
-
-
-                        calcExpression =
-                            String(result);
-
-
-                        calcDisplay.value =
-                            calcExpression;
-
-                    }
-
-                    catch {
-
-                        calcDisplay.value =
-                            "Error";
-
-                        calcExpression =
-                            "";
-
-                    }
-
-                    return;
-
-                }
-
-
-                /* Percentage */
-
-                if (value === "%") {
-
-                    if (calcExpression) {
-
-                        try {
-
-                            calcExpression =
-                                String(
-                                    Number(
-                                        calcExpression
-                                    ) / 100
-                                );
-
-
-                            calcDisplay.value =
-                                calcExpression;
-
-                        }
-
-                        catch {
-
-                            calcDisplay.value =
-                                "Error";
-
-                            calcExpression =
-                                "";
-
-                        }
-
-                    }
-
-                    return;
-
-                }
-
-
-                /* Add */
-
-                calcExpression +=
-                    value;
-
-                calcDisplay.value =
-                    calcExpression;
-
+    for (const token of tokens) {
+        if (OPERATORS.includes(token)) {
+            if (expectNumber) {
+                if (token === "-") sign = -sign;   // unary minus, e.g. "-5" or "3*-2"
+                continue;
             }
-        );
-
-    });
-
-
-/* =========================================
-   TIMER
-========================================= */
-
-const timerDisplay =
-    document.getElementById(
-        "timerDisplay"
-    );
-
-
-const startTimer =
-    document.getElementById(
-        "startTimer"
-    );
-
-
-const resetTimer =
-    document.getElementById(
-        "resetTimer"
-    );
-
-
-/* =========================================
-   TIMER SOUND
-========================================= */
-
-function playTimerSound() {
-
-    const AudioContext =
-        window.AudioContext ||
-        window.webkitAudioContext;
-
-
-    if (!AudioContext)
-        return;
-
-
-    const audioContext =
-        new AudioContext();
-
-
-    function playBell(delay) {
-
-        const oscillator =
-            audioContext.createOscillator();
-
-
-        const gainNode =
-            audioContext.createGain();
-
-
-        oscillator.type =
-            "sine";
-
-
-        oscillator.frequency.setValueAtTime(
-            880,
-            audioContext.currentTime + delay
-        );
-
-
-        gainNode.gain.setValueAtTime(
-            0.0001,
-            audioContext.currentTime + delay
-        );
-
-
-        gainNode.gain.exponentialRampToValueAtTime(
-            0.35,
-            audioContext.currentTime + delay + 0.05
-        );
-
-
-        gainNode.gain.exponentialRampToValueAtTime(
-            0.0001,
-            audioContext.currentTime + delay + 0.8
-        );
-
-
-        oscillator.connect(
-            gainNode
-        );
-
-
-        gainNode.connect(
-            audioContext.destination
-        );
-
-
-        oscillator.start(
-            audioContext.currentTime + delay
-        );
-
-
-        oscillator.stop(
-            audioContext.currentTime + delay + 0.8
-        );
-
+            while (ops.length && precedence(ops.at(-1)) >= precedence(token)) applyTop();
+            ops.push(token);
+            expectNumber = true;
+        } else {
+            numbers.push(sign * Number(token));
+            sign = 1;
+            expectNumber = false;
+        }
     }
 
+    if (expectNumber && ops.length) ops.pop();   // ignore a trailing operator: "5+"
+    while (ops.length) applyTop();
 
-    playBell(0);
+    const result = numbers[0] ?? 0;
+    if (!Number.isFinite(result)) throw new Error("Invalid result");
 
-    playBell(0.9);
-
-    playBell(1.8);
-
+    // Hide floating point noise: 0.1 + 0.2 → 0.3
+    return parseFloat(result.toPrecision(12));
 }
+
+function setCalc(expression) {
+    calcExpression = expression;
+    calcDisplay.value = expression || "0";
+}
+
+function pressCalc(value) {
+    const last = calcExpression.slice(-1);
+    const isOperator = OPERATORS.includes(value);
+
+    if (value === "C") return setCalc("");
+
+    if (value === "⌫") {
+        showingResult = false;
+        return setCalc(calcExpression.slice(0, -1));
+    }
+
+    if (value === "=") {
+        if (!calcExpression) return;
+        try {
+            setCalc(String(calculate(calcExpression)));
+            showingResult = true;
+        } catch {
+            calcExpression = "";
+            calcDisplay.value = "Error";
+        }
+        return;
+    }
+
+    if (value === "%") {
+        // Turn the last number into a percentage: 50+10% → 50+0.1
+        const match = calcExpression.match(/(\d*\.?\d+)$/);
+        if (match) {
+            const percent = parseFloat((Number(match[1]) / 100).toPrecision(12));
+            setCalc(calcExpression.slice(0, -match[1].length) + percent);
+        }
+        return;
+    }
+
+    // Typing a digit right after "=" starts a new calculation
+    if (showingResult && !isOperator) calcExpression = "";
+    showingResult = false;
+
+    if (isOperator) {
+        if (!calcExpression && value !== "-") return;
+        // Replace the previous operator instead of stacking them: "5+*" → "5*"
+        if (OPERATORS.includes(last) && !(value === "-" && last !== "-")) {
+            return setCalc(calcExpression.slice(0, -1) + value);
+        }
+    }
+
+    if (value === ".") {
+        const currentNumber = calcExpression.split(/[+\-*/]/).pop();
+        if (currentNumber.includes(".")) return;
+        if (!currentNumber) value = "0.";
+    }
+
+    setCalc(calcExpression + value);
+}
+
+document.querySelectorAll("[data-calc]").forEach((button) => {
+    button.addEventListener("click", () => pressCalc(button.dataset.calc));
+});
+
+// Keyboard support while the calculator is open
+const calcKeys = { Enter: "=", "=": "=", Backspace: "⌫", Escape: "C", Delete: "C", x: "*", X: "*" };
+
+document.addEventListener("keydown", (event) => {
+    if (calculatorView.classList.contains("hidden")) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    const key = calcKeys[event.key] || event.key;
+    if (/^[0-9.%+\-*/=C⌫]$/.test(key)) {
+        event.preventDefault();
+        pressCalc(key);
+    }
+});
 
 
 /* =========================================
-   TIMER FINISHED EFFECT
+   FOCUS TIMER
 ========================================= */
 
-function timerFinishedEffect() {
+const timerDisplay = $("timerDisplay");
+const startTimer = $("startTimer");
+let timerInterval = null;
+let timerEndsAt = 0;
+let timerDuration = 25 * 60;   // the last time the user picked
+let timerSeconds = timerDuration;
 
-    timerDisplay.classList.add(
-        "timer-finished"
-    );
+function formatTime(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n) => String(n).padStart(2, "0");
 
-
-    setTimeout(
-        function () {
-
-            timerDisplay.classList.remove(
-                "timer-finished"
-            );
-
-        },
-        2500
-    );
-
+    return hours > 0
+        ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+        : `${pad(minutes)}:${pad(seconds)}`;
 }
-
-
-/* =========================================
-   TIMER DISPLAY
-========================================= */
 
 function updateTimerDisplay() {
-
-    const minutes =
-        Math.floor(
-            timerSeconds / 60
-        );
-
-
-    const seconds =
-        timerSeconds % 60;
-
-
-    timerDisplay.textContent =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
+    timerDisplay.textContent = formatTime(timerSeconds);
+    document.title = timerInterval
+        ? `${formatTime(timerSeconds)} · Nexora`
+        : "Nexora | Smart Productivity";
 }
 
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    startTimer.textContent = t().startFocus;
+    updateTimerDisplay();
+}
 
-/* =========================================
-   START / PAUSE TIMER
-========================================= */
+function setTimer(seconds) {
+    stopTimer();
+    timerDuration = seconds;
+    timerSeconds = seconds;
+    timerDisplay.classList.remove("timer-finished");
+    updateTimerDisplay();
+}
 
-startTimer.addEventListener(
-    "click",
-    function () {
+function tick() {
+    // Based on the real clock, so the timer stays accurate even in a background tab
+    timerSeconds = Math.max(0, Math.round((timerEndsAt - Date.now()) / 1000));
+    updateTimerDisplay();
 
-        /* Pause */
-
-        if (timerInterval) {
-
-            clearInterval(
-                timerInterval
-            );
-
-
-            timerInterval = null;
-
-
-            startTimer.textContent =
-                t().startFocus;
-
-
-            return;
-
-        }
-
-
-        /* Restart after finishing */
-
-        if (timerSeconds <= 0) {
-
-            timerSeconds =
-                25 * 60;
-
-
-            updateTimerDisplay();
-
-        }
-
-
-        startTimer.textContent =
-            t().pause;
-
-
-        timerInterval =
-            setInterval(
-                function () {
-
-                    timerSeconds--;
-
-                    updateTimerDisplay();
-
-
-                    /* Finished */
-
-                    if (timerSeconds <= 0) {
-
-                        clearInterval(
-                            timerInterval
-                        );
-
-
-                        timerInterval = null;
-
-
-                        timerSeconds = 0;
-
-
-                        updateTimerDisplay();
-
-
-                        startTimer.textContent =
-                            t().startFocus;
-
-
-                        playTimerSound();
-
-                        timerFinishedEffect();
-
-
-                        showToast(
-                            t().focusComplete
-                        );
-
-                    }
-
-                },
-                1000
-            );
-
+    if (timerSeconds === 0) {
+        stopTimer();
+        playTimerSound();
+        timerDisplay.classList.add("timer-finished");
+        setTimeout(() => timerDisplay.classList.remove("timer-finished"), 2500);
+        showToast(t().focusComplete);
     }
-);
+}
 
+startTimer.addEventListener("click", () => {
+    if (timerInterval) return stopTimer();   // pause
 
-/* =========================================
-   RESET TIMER
-========================================= */
+    if (timerSeconds <= 0) timerSeconds = timerDuration;
 
-resetTimer.addEventListener(
-    "click",
-    function () {
+    timerEndsAt = Date.now() + timerSeconds * 1000;
+    timerInterval = setInterval(tick, 250);
+    startTimer.textContent = t().pause;
+    updateTimerDisplay();
+});
 
-        clearInterval(
-            timerInterval
-        );
+$("resetTimer").addEventListener("click", () => setTimer(timerDuration));
 
+document.querySelectorAll("[data-min]").forEach((button) => {
+    button.addEventListener("click", () => setTimer(Number(button.dataset.min) * 60));
+});
 
-        timerInterval = null;
+$("setCustomTimer").addEventListener("click", () => {
+    const value = (id, max) => Math.min(max, Math.max(0, Math.floor(Number($(id).value) || 0)));
+    const seconds = value("customHours", 23) * 3600 + value("customMinutes", 59) * 60 + value("customSeconds", 59);
 
-
-        timerSeconds =
-            25 * 60;
-
-
-        updateTimerDisplay();
-
-
-        startTimer.textContent =
-            t().startFocus;
-
-
-        timerDisplay.classList.remove(
-            "timer-finished"
-        );
-
+    if (seconds <= 0) {
+        showToast(t().setTimeFirst);
+        return;
     }
-);
 
+    setTimer(seconds);
+});
 
-/* =========================================
-   TIMER PRESETS
-========================================= */
+function playTimerSound() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
 
-document
-    .querySelectorAll("[data-min]")
-    .forEach(button => {
+    const audio = new AudioContext();
 
-        button.addEventListener(
-            "click",
-            function () {
+    [0, 0.9, 1.8].forEach((delay) => {
+        const start = audio.currentTime + delay;
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
 
-                clearInterval(
-                    timerInterval
-                );
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(880, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.35, start + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.8);
 
-
-                timerInterval = null;
-
-
-                timerSeconds =
-                    Number(
-                        button.dataset.min
-                    ) * 60;
-
-
-                updateTimerDisplay();
-
-
-                startTimer.textContent =
-                    t().startFocus;
-
-
-                timerDisplay.classList.remove(
-                    "timer-finished"
-                );
-
-            }
-        );
-
+        oscillator.connect(gain);
+        gain.connect(audio.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.8);
     });
-
-
-/* =========================================
-   CUSTOM TIMER
-========================================= */
-
-const customHours =
-    document.getElementById(
-        "customHours"
-    );
-
-
-const customMinutes =
-    document.getElementById(
-        "customMinutes"
-    );
-
-
-const customSeconds =
-    document.getElementById(
-        "customSeconds"
-    );
-
-
-const setCustomTimer =
-    document.getElementById(
-        "setCustomTimer"
-    );
-
-
-if (setCustomTimer) {
-
-    setCustomTimer.addEventListener(
-        "click",
-        function () {
-
-            clearInterval(
-                timerInterval
-            );
-
-
-            timerInterval = null;
-
-
-            const hours =
-                Number(
-                    customHours.value
-                ) || 0;
-
-
-            const minutes =
-                Number(
-                    customMinutes.value
-                ) || 0;
-
-
-            const seconds =
-                Number(
-                    customSeconds.value
-                ) || 0;
-
-
-            timerSeconds =
-                (hours * 60 * 60) +
-                (minutes * 60) +
-                seconds;
-
-
-            if (timerSeconds <= 0) {
-
-                showToast(
-                    currentLanguage === "ar"
-                        ? "اختاري وقتًا أولًا"
-                        : "Please set a time first"
-                );
-
-                return;
-
-            }
-
-
-            updateTimerDisplay();
-
-
-            startTimer.textContent =
-                t().startFocus;
-
-
-            timerDisplay.classList.remove(
-                "timer-finished"
-            );
-
-        }
-    );
-
 }
 
 
@@ -1988,494 +761,58 @@ if (setCustomTimer) {
    MOUSE GLOW
 ========================================= */
 
-const mouseGlow =
-    document.querySelector(
-        ".mouse-glow"
-    );
+const mouseGlow = document.querySelector(".mouse-glow");
 
-
-document.addEventListener(
-    "mousemove",
-    function (event) {
-
-        if (!mouseGlow)
-            return;
-
-
-        mouseGlow.style.left =
-            `${event.clientX}px`;
-
-
-        mouseGlow.style.top =
-            `${event.clientY}px`;
-
-    }
-);
+document.addEventListener("mousemove", (event) => {
+    mouseGlow.style.left = `${event.clientX}px`;
+    mouseGlow.style.top = `${event.clientY}px`;
+});
 
 
 /* =========================================
-   APPLY LANGUAGE
+   LANGUAGE
 ========================================= */
 
 function applyLanguage() {
-
-    const lang =
-        t();
-
-
-    /* Direction */
-
-    if (currentLanguage === "ar") {
-
-        document.body.classList.add(
-            "rtl"
-        );
-
-
-        document.documentElement.dir =
-            "rtl";
-
-
-        document.documentElement.lang =
-            "ar";
-
-    }
-
-    else {
-
-        document.body.classList.remove(
-            "rtl"
-        );
-
-
-        document.documentElement.dir =
-            "ltr";
-
-
-        document.documentElement.lang =
-            "en";
-
-    }
-
-
-    /* Language button */
-
-    languageBtn.textContent =
-        lang.langButton;
-
-
-    /* =====================================
-       WELCOME
-    ===================================== */
-
-    const eyebrow =
-        document.querySelector(
-            ".welcome .eyebrow"
-        );
-
-
-    if (eyebrow)
-        eyebrow.textContent =
-            lang.welcome;
-
-
-    const welcomeTitle =
-        document.querySelector(
-            ".welcome h1"
-        );
-
-
-    if (welcomeTitle) {
-
-        welcomeTitle.innerHTML = `
-
-            ${lang.welcomeTitle1}
-
-            <br>
-
-            <span>
-                ${lang.welcomeTitle2}
-            </span>
-
-        `;
-
-    }
-
-
-    const welcomeText =
-        document.querySelector(
-            ".welcome p"
-        );
-
-
-    if (welcomeText)
-        welcomeText.textContent =
-            lang.welcomeText;
-
-
-    /* =====================================
-       PROGRESS
-    ===================================== */
-
-    const completeText =
-        document.querySelector(
-            ".ring small"
-        );
-
-
-    if (completeText)
-        completeText.textContent =
-            lang.progressComplete;
-
-
-    const progressTitle =
-        document.querySelector(
-            ".progress-copy strong"
-        );
-
-
-    if (progressTitle)
-        progressTitle.textContent =
-            lang.progressTitle;
-
-
-    /* =====================================
-       STATISTICS
-    ===================================== */
-
-    const statLabels =
-        document.querySelectorAll(
-            ".stat span"
-        );
-
-
-    if (statLabels.length >= 3) {
-
-        statLabels[0].textContent =
-            lang.total;
-
-
-        statLabels[1].textContent =
-            lang.done;
-
-
-        statLabels[2].textContent =
-            lang.pending;
-
-    }
-
-
-    /* =====================================
-       TOOLS
-    ===================================== */
-
-    const toolSpans =
-        document.querySelectorAll(
-            ".tool span"
-        );
-
-
-    if (toolSpans.length >= 3) {
-
-        toolSpans[0].textContent =
-            lang.myTasks;
-
-
-        toolSpans[1].textContent =
-            lang.calculator;
-
-
-        toolSpans[2].textContent =
-            lang.focusTimer;
-
-    }
-
-
-    /* =====================================
-       HERO
-    ===================================== */
-
-    const heroEyebrow =
-        document.querySelector(
-            ".hero-content .eyebrow"
-        );
-
-
-    if (heroEyebrow)
-        heroEyebrow.textContent =
-            lang.workspace;
-
-
-    const heroText =
-        document.querySelector(
-            ".hero-content p"
-        );
-
-
-    if (heroText)
-        heroText.textContent =
-            lang.heroText;
-
-
-    /* =====================================
-       TASKS
-    ===================================== */
-
-    const taskTitle =
-        document.querySelector(
-            ".panel-head h3"
-        );
-
-
-    if (taskTitle)
-        taskTitle.textContent =
-            lang.taskTitle;
-
-
-    addBtn.textContent =
-        lang.addTask;
-
-
-    saveTask.textContent =
-        lang.saveTask;
-
-
-    taskInput.placeholder =
-        lang.taskPlaceholder;
-
-
-    search.placeholder =
-        lang.search;
-
-
-    /* Delete completed */
-
-    const clearText =
-        clearDone.querySelector(
-            "span:last-child"
-        );
-
-
-    if (clearText)
-        clearText.textContent =
-            lang.deleteCompleted;
-
-
-    /* Status filter */
-
-    statusFilter.options[0].text =
-        lang.allTasks;
-
-
-    statusFilter.options[1].text =
-        lang.active;
-
-
-    statusFilter.options[2].text =
-        lang.completed;
-
-
-    /* Priority filter */
-
-    priorityFilter.options[0].text =
-        lang.allPriorities;
-
-
-    priorityFilter.options[1].text =
-        lang.high;
-
-
-    priorityFilter.options[2].text =
-        lang.medium;
-
-
-    priorityFilter.options[3].text =
-        lang.low;
-
-
-    /* Add task priority */
-
-    priority.options[0].text =
-        lang.low;
-
-
-    priority.options[1].text =
-        lang.medium;
-
-
-    priority.options[2].text =
-        lang.high;
-
-
-    /* =====================================
-       CALCULATOR
-    ===================================== */
-
-    const calculatorEyebrow =
-        document.querySelector(
-            "#calculatorView .eyebrow"
-        );
-
-
-    if (calculatorEyebrow)
-        calculatorEyebrow.textContent =
-            lang.quickTool;
-
-
-    const calculatorTitle =
-        document.querySelector(
-            "#calculatorView h3"
-        );
-
-
-    if (calculatorTitle)
-        calculatorTitle.textContent =
-            lang.calculatorTitle;
-
-
-    /* =====================================
-       TIMER
-    ===================================== */
-
-    const timerEyebrow =
-        document.querySelector(
-            "#timerView .eyebrow"
-        );
-
-
-    if (timerEyebrow)
-        timerEyebrow.textContent =
-            lang.focusMode;
-
-
-    const timerTitleElement =
-        document.querySelector(
-            "#timerView h3"
-        );
-
-
-    if (timerTitleElement)
-        timerTitleElement.textContent =
-            lang.timerTitle;
-
-
-    startTimer.textContent =
-        timerInterval
-            ? lang.pause
-            : lang.startFocus;
-
-
-    resetTimer.textContent =
-        lang.reset;
-
-
-    /* Timer presets */
-
-    const presets =
-        document.querySelectorAll(
-            ".presets button"
-        );
-
-
-    if (presets.length >= 4) {
-
-        presets[0].textContent =
-            lang.minutes5;
-
-
-        presets[1].textContent =
-            lang.minutes15;
-
-
-        presets[2].textContent =
-            lang.minutes25;
-
-
-        presets[3].textContent =
-            lang.minutes45;
-
-    }
-
-
-    /* =====================================
-       MODAL
-    ===================================== */
-
-    const modalTitle =
-        document.querySelector(
-            ".delete-modal-box h3"
-        );
-
-
-    if (modalTitle)
-        modalTitle.textContent =
-            lang.nothingDelete;
-
-
-    const modalText =
-        document.querySelector(
-            ".delete-modal-box p"
-        );
-
-
-    if (modalText)
-        modalText.textContent =
-            lang.noCompleted;
-
-
-    closeDeleteModal.textContent =
-        lang.gotIt;
-
-
-    /* =====================================
-       UPDATE
-    ===================================== */
+    const lang = t();
+    const isArabic = currentLanguage === "ar";
+
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = isArabic ? "rtl" : "ltr";
+    document.body.classList.toggle("rtl", isArabic);
+
+    // Every element with data-i18n gets its text from the translations
+    document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = lang[element.dataset.i18n];
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+        element.placeholder = lang[element.dataset.i18nPlaceholder];
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+        element.title = lang[element.dataset.i18nTitle];
+        element.setAttribute("aria-label", element.title);
+    });
+
+    $("languageBtn").textContent = lang.langButton;
+    startTimer.textContent = timerInterval ? lang.pause : lang.startFocus;
 
     updateGreeting();
-
     updateDate();
-
     updateClock();
-
-    updateStats();
-
     renderTasks();
 
-
-    /* Save language */
-
-    localStorage.setItem(
-        "nexoraLanguage",
-        currentLanguage
-    );
-
+    save("nexoraLanguage", currentLanguage);
 }
 
-
-/* =========================================
-   LANGUAGE BUTTON
-========================================= */
-
-languageBtn.addEventListener(
-    "click",
-    function () {
-
-        currentLanguage =
-            currentLanguage === "en"
-                ? "ar"
-                : "en";
-
-
-        applyLanguage();
-
-    }
-);
+$("languageBtn").addEventListener("click", () => {
+    currentLanguage = currentLanguage === "en" ? "ar" : "en";
+    applyLanguage();
+});
 
 
 /* =========================================
-   INITIAL
+   START
 ========================================= */
 
 applyLanguage();
-
 updateTimerDisplay();

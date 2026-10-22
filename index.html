@@ -1,803 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nexora — a bilingual productivity dashboard with tasks, a calculator and a focus timer.">
     <title>Nexora | Smart Productivity</title>
-
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-    <link rel="stylesheet"
-          href="style.css">
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2322d3ee'/><stop offset='1' stop-color='%23818cf8'/></linearGradient></defs><rect width='100' height='100' rx='28' fill='url(%23g)'/><text x='50' y='68' font-family='Arial' font-size='52' font-weight='800' fill='white' text-anchor='middle'>N</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-
-
 <body>
 
-    <!-- =========================================
-         BACKGROUND
-    ========================================== -->
-
+    <!-- Background -->
     <div class="background">
-
         <span class="orb orb-1"></span>
         <span class="orb orb-2"></span>
         <span class="orb orb-3"></span>
-
         <div class="grid"></div>
-
         <div class="stars"></div>
-
     </div>
 
-    <!-- =========================================
-         TOP BAR
-    ========================================== -->
-
+    <!-- Top bar -->
     <header class="topbar glass">
-
         <div class="brand">
-
-            <div class="logo">
-                N
-            </div>
-
+            <div class="logo">N</div>
             <div class="brand-text">
-
                 <strong>NEXORA</strong>
-
-                <small>
-                    Smart Productivity
-                </small>
-
+                <small>Smart Productivity</small>
             </div>
-
         </div>
-
 
         <div class="top-actions">
-
-            <span id="clock">
-                00:00:00
-            </span>
-<button class="language-btn" id="languageBtn">
-    ع
-</button>
-            <button
-                id="themeBtn"
-                class="icon-btn"
-                title="Toggle theme">
-
-                ☾
-
-            </button>
-
+            <span id="clock">00:00:00</span>
+            <button type="button" class="language-btn" id="languageBtn" data-i18n-title="switchLanguage">ع</button>
+            <button type="button" id="themeBtn" class="icon-btn" data-i18n-title="toggleTheme">☾</button>
         </div>
-
     </header>
-
-    <!-- =========================================
-         MAIN
-    ========================================== -->
 
     <main class="layout">
 
-
-        <!-- =====================================
-             SIDEBAR
-        ====================================== -->
-
+        <!-- Sidebar -->
         <aside class="sidebar glass">
-
-
-            <!-- Welcome -->
-
             <div class="welcome">
-
-                <span class="eyebrow">
-                    WELCOME
-                </span>
-
+                <span class="eyebrow" data-i18n="welcome">WELCOME</span>
                 <h1>
-
-                    Stay focused.
-                    <br>
-
-                    <span>
-                        Get things done.
-                    </span>
-
+                    <span data-i18n="welcomeTitle1">Stay focused</span><br>
+                    <span class="accent" data-i18n="welcomeTitle2">Get things done</span>
                 </h1>
-
-                <p>
-                    Simple tools for a productive day.
-                </p>
-
+                <p data-i18n="welcomeText">Simple tools for a productive day</p>
             </div>
-
-            <!-- Progress -->
 
             <div class="progress-card">
-
-                <div
-                    class="ring"
-                    id="ring">
-
+                <div class="ring" id="ring">
                     <div>
-
-                        <b id="progressPercent">
-                            0%
-                        </b>
-
-                        <small>
-                            complete
-                        </small>
-
+                        <b id="progressPercent">0%</b>
+                        <small data-i18n="progressComplete">complete</small>
                     </div>
-
                 </div>
-
-
                 <div class="progress-copy">
-
-                    <strong>
-                        Today's progress
-                    </strong>
-
-                    <span id="progressText">
-                        0 of 0 tasks
-                    </span>
-
+                    <strong data-i18n="progressTitle">Today's progress</strong>
+                    <span id="progressText">0 of 0 tasks</span>
                 </div>
-
             </div>
-
-            <!-- Statistics -->
 
             <div class="stats">
-
                 <div class="stat">
-
-                    <b id="totalCount">
-                        0
-                    </b>
-
-                    <span>
-                        Total
-                    </span>
-
+                    <b id="totalCount">0</b>
+                    <span data-i18n="total">Total</span>
                 </div>
-
-
                 <div class="stat">
-
-                    <b id="doneCount">
-                        0
-                    </b>
-
-                    <span>
-                        Done
-                    </span>
-
+                    <b id="doneCount">0</b>
+                    <span data-i18n="done">Done</span>
                 </div>
-
-
                 <div class="stat">
-
-                    <b id="pendingCount">
-                        0
-                    </b>
-
-                    <span>
-                        Pending
-                    </span>
-
+                    <b id="pendingCount">0</b>
+                    <span data-i18n="pending">Pending</span>
                 </div>
-
             </div>
 
-            <!-- Tools -->
-
-            <div class="tools">
-
-
-                <button
-                    class="tool active"
-                    data-tool="tasks">
-
-                    ✓
-
-                    <span>
-                        My Tasks
-                    </span>
-
-                </button>
-
-
-                <button
-                    class="tool"
-                    data-tool="calculator">
-
-                    ⌗
-
-                    <span>
-                        Calculator
-                    </span>
-
-                </button>
-
-
-                <button
-                    class="tool"
-                    data-tool="timer">
-
-                    ◷
-
-                    <span>
-                        Focus Timer
-                    </span>
-
-                </button>
-
-
-            </div>
-
-
+            <nav class="tools">
+                <button type="button" class="tool active" data-tool="tasks">✓ <span data-i18n="myTasks">My Tasks</span></button>
+                <button type="button" class="tool" data-tool="calculator">⌗ <span data-i18n="calculator">Calculator</span></button>
+                <button type="button" class="tool" data-tool="timer">◷ <span data-i18n="focusTimer">Focus Timer</span></button>
+            </nav>
         </aside>
-
-        <!-- =====================================
-             CONTENT
-        ====================================== -->
 
         <section class="content">
 
-
-            <!-- =================================
-                 HERO
-            ================================== -->
-
+            <!-- Hero -->
             <div class="hero glass">
-
-
                 <div class="hero-content">
-
-                    <span class="eyebrow">
-                        YOUR WORKSPACE
-                    </span>
-
-                    <h2 id="greeting">
-                        Good evening ✦
-                    </h2>
-
-                    <p>
-                        Plan your tasks. Stay focused.
-                    </p>
-
+                    <span class="eyebrow" data-i18n="workspace">YOUR WORKSPACE</span>
+                    <h2 id="greeting">Good evening ✦</h2>
+                    <p data-i18n="heroText">Plan your tasks and stay focused</p>
                 </div>
-
-                <!-- Visual -->
 
                 <div class="hero-visual">
-
                     <div class="focus-orbit orbit-one"></div>
-
                     <div class="focus-orbit orbit-two"></div>
-
-
                     <div class="focus-core">
-
                         <div class="core-ring"></div>
-
-                        <div class="core-icon">
-                            ✦
-                        </div>
-
+                        <div class="core-icon">✦</div>
                     </div>
-
-
                     <div class="floating-dot dot-one"></div>
-
                     <div class="floating-dot dot-two"></div>
-
                     <div class="floating-dot dot-three"></div>
-
                 </div>
-
-                <!-- Date -->
 
                 <div class="date-box">
-
-                    <span id="date">
-                        Thursday
-                    </span>
-
-                   
-
+                    <span id="date"></span>
                 </div>
-
             </div>
 
-            <!-- =================================
-                 TASKS
-            ================================== -->
-
-            <section
-                id="tasksView"
-                class="view">
-
-
+            <!-- Tasks -->
+            <section id="tasksView" class="view">
                 <div class="task-panel glass">
-
-
                     <div class="panel-head">
-
                         <div>
-
-                            <h3>
-                                My Tasks
-                            </h3>
-
-                            <p id="taskSubtitle">
-                                Add your first task.
-                            </p>
-
+                            <h3 data-i18n="taskTitle">My Tasks</h3>
+                            <p id="taskSubtitle">Add your first task</p>
                         </div>
-
-
                         <div class="task-head-actions">
-
-
-                            <button
-                                id="addBtn"
-                                class="primary">
-
-                                + Add Task
-
+                            <button type="button" id="addBtn" class="primary" data-i18n="addTask">+ Add Task</button>
+                            <button type="button" id="clearDone" class="clear-btn">
+                                <span class="clear-icon">🗑</span>
+                                <span data-i18n="deleteCompleted">Delete completed</span>
                             </button>
-
-
-                            <button
-                                id="clearDone"
-                                class="clear-btn">
-
-                                <span class="clear-icon">
-                                    🗑
-                                </span>
-
-                                <span>
-                                    Delete completed
-                                </span>
-
-                            </button>
-
-
                         </div>
-
                     </div>
 
-
-
-                    <!-- Add Task -->
-
-                    <div
-                        class="add-row"
-                        id="addRow">
-
-
-                        <input
-                            id="taskInput"
-                            maxlength="120"
-                            type="text"
-                            placeholder="What needs to be done?">
-
-
+                    <div class="add-row" id="addRow">
+                        <input id="taskInput" type="text" maxlength="120" data-i18n-placeholder="taskPlaceholder" placeholder="What needs to be done?">
                         <select id="priority">
-
-                            <option value="low">
-                                Low
-                            </option>
-
-                            <option
-                                value="medium"
-                                selected>
-
-                                Medium
-
-                            </option>
-
-                            <option value="high">
-                                High
-                            </option>
-
+                            <option value="low" data-i18n="low">Low</option>
+                            <option value="medium" data-i18n="medium" selected>Medium</option>
+                            <option value="high" data-i18n="high">High</option>
                         </select>
-
-
-                        <button
-                            id="saveTask"
-                            class="primary">
-
-                            Add
-
-                        </button>
-
-
+                        <button type="button" id="saveTask" class="primary" data-i18n="saveTask">Add</button>
                     </div>
-
-
-
-                    <!-- Filters -->
 
                     <div class="filters">
-
-
-                        <input
-                            id="search"
-                            type="search"
-                            placeholder="⌕ Search tasks...">
-
-
+                        <input id="search" type="search" data-i18n-placeholder="search" placeholder="⌕ Search tasks...">
                         <select id="statusFilter">
-
-                            <option value="all">
-                                All tasks
-                            </option>
-
-                            <option value="active">
-                                Active
-                            </option>
-
-                            <option value="completed">
-                                Completed
-                            </option>
-
+                            <option value="all" data-i18n="allTasks">All tasks</option>
+                            <option value="active" data-i18n="active">Active</option>
+                            <option value="completed" data-i18n="completed">Completed</option>
                         </select>
-
-
                         <select id="priorityFilter">
-
-                            <option value="all">
-                                All priorities
-                            </option>
-
-                            <option value="high">
-                                High
-                            </option>
-
-                            <option value="medium">
-                                Medium
-                            </option>
-
-                            <option value="low">
-                                Low
-                            </option>
-
+                            <option value="all" data-i18n="allPriorities">All priorities</option>
+                            <option value="high" data-i18n="high">High</option>
+                            <option value="medium" data-i18n="medium">Medium</option>
+                            <option value="low" data-i18n="low">Low</option>
                         </select>
-
-
                     </div>
 
-
-
-                    <!-- Task List -->
-
-                    <div
-                        id="taskList"
-                        class="task-list">
-
-                    </div>
-
-
+                    <div id="taskList" class="task-list"></div>
                 </div>
-
             </section>
 
-            <!-- =================================
-                 CALCULATOR
-            ================================== -->
-
-            <section
-                id="calculatorView"
-                class="view hidden">
-
-
+            <!-- Calculator -->
+            <section id="calculatorView" class="view hidden">
                 <div class="utility glass">
-
-                    <span class="eyebrow">
-                        QUICK TOOL
-                    </span>
-
-                    <h3>
-                        Calculator
-                    </h3>
-
+                    <span class="eyebrow" data-i18n="quickTool">QUICK TOOL</span>
+                    <h3 data-i18n="calculatorTitle">Calculator</h3>
 
                     <div class="calc">
-
-                        <input
-                            id="calcDisplay"
-                            readonly
-                            value="0">
-
-
+                        <input id="calcDisplay" readonly value="0" aria-label="Result">
                         <div class="calc-grid">
-
-
-                            <button data-calc="C">
-                                C
-                            </button>
-
-                            <button data-calc="⌫">
-                                ⌫
-                            </button>
-
-                            <button data-calc="%">
-                                %
-                            </button>
-
-                            <button data-calc="/">
-                                ÷
-                            </button>
-
-
-                            <button data-calc="7">
-                                7
-                            </button>
-
-                            <button data-calc="8">
-                                8
-                            </button>
-
-                            <button data-calc="9">
-                                9
-                            </button>
-
-                            <button data-calc="*">
-                                ×
-                            </button>
-
-
-                            <button data-calc="4">
-                                4
-                            </button>
-
-                            <button data-calc="5">
-                                5
-                            </button>
-
-                            <button data-calc="6">
-                                6
-                            </button>
-
-                            <button data-calc="-">
-                                −
-                            </button>
-
-
-                            <button data-calc="1">
-                                1
-                            </button>
-
-                            <button data-calc="2">
-                                2
-                            </button>
-
-                            <button data-calc="3">
-                                3
-                            </button>
-
-                            <button data-calc="+">
-                                +
-                            </button>
-
-
-                            <button
-                                class="wide"
-                                data-calc="0">
-
-                                0
-
-                            </button>
-
-
-                            <button data-calc=".">
-                                .
-                            </button>
-
-
-                            <button data-calc="=">
-                                =
-                            </button>
-
+                            <button type="button" data-calc="C">C</button>
+                            <button type="button" data-calc="⌫">⌫</button>
+                            <button type="button" data-calc="%">%</button>
+                            <button type="button" data-calc="/">÷</button>
+                            <button type="button" data-calc="7">7</button>
+                            <button type="button" data-calc="8">8</button>
+                            <button type="button" data-calc="9">9</button>
+                            <button type="button" data-calc="*">×</button>
+                            <button type="button" data-calc="4">4</button>
+                            <button type="button" data-calc="5">5</button>
+                            <button type="button" data-calc="6">6</button>
+                            <button type="button" data-calc="-">−</button>
+                            <button type="button" data-calc="1">1</button>
+                            <button type="button" data-calc="2">2</button>
+                            <button type="button" data-calc="3">3</button>
+                            <button type="button" data-calc="+">+</button>
+                            <button type="button" data-calc="0" class="wide">0</button>
+                            <button type="button" data-calc=".">.</button>
+                            <button type="button" data-calc="=">=</button>
                         </div>
-
                     </div>
-
                 </div>
-
             </section>
 
-            <!-- =================================
-                 TIMER
-            ================================== -->
+            <!-- Timer -->
+            <section id="timerView" class="view hidden">
+                <div class="utility glass timer-wrap">
+                    <span class="eyebrow" data-i18n="focusMode">FOCUS MODE</span>
+                    <h3 data-i18n="timerTitle">Focus Timer</h3>
 
-            <section
-                id="timerView"
-                class="view hidden">
-
-
-                <div
-                    class="utility glass timer-wrap">
-
-                    <span class="eyebrow">
-                        FOCUS MODE
-                    </span>
-                    <h3>
-                        Focus Timer
-                    </h3>
-
-
-                    <div id="timerDisplay">
-                        25:00
-                    </div>
-
+                    <div id="timerDisplay">25:00</div>
 
                     <div class="timer-controls">
-
-                        <button
-                            id="startTimer"
-                            class="primary">
-
-                            Start focus
-
-                        </button>
-
-
-                        <button id="resetTimer">
-
-                            Reset
-
-                        </button>
-
+                        <button type="button" id="startTimer" class="primary">Start focus</button>
+                        <button type="button" id="resetTimer" data-i18n="reset">Reset</button>
                     </div>
-
 
                     <div class="presets">
-
-                        <button data-min="5">
-                            5 min
-                        </button>
-
-                        <button data-min="15">
-                            15 min
-                        </button>
-
-                        <button data-min="25">
-                            25 min
-                        </button>
-
-                        <button data-min="45">
-                            45 min
-                        </button>
-
+                        <button type="button" data-min="5" data-i18n="minutes5">5 min</button>
+                        <button type="button" data-min="15" data-i18n="minutes15">15 min</button>
+                        <button type="button" data-min="25" data-i18n="minutes25">25 min</button>
+                        <button type="button" data-min="45" data-i18n="minutes45">45 min</button>
                     </div>
-<!-- Custom Timer -->
 
-<div class="custom-timer">
-
-    <span class="custom-title">
-        Custom Time
-    </span>
-
-    <div class="custom-inputs">
-
-        <input
-    id="customHours"
-    type="number"
-    min="0"
-    max="23"
-    placeholder="Hours">
-        <span>:</span>
-
-        <input
-    id="customMinutes"
-    type="number"
-    min="0"
-    max="59"
-    placeholder="Minutes">
-
-        <span>:</span>
-
-        <input
-    id="customSeconds"
-    type="number"
-    min="0"
-    max="59"
-    placeholder="Seconds">
-
-    </div>
-
-    <button
-        id="setCustomTimer"
-        class="primary">
-
-        Set Time
-
-    </button>
-
- </div>
+                    <div class="custom-timer">
+                        <span class="custom-title" data-i18n="customTime">Custom Time</span>
+                        <div class="custom-inputs">
+                            <input id="customHours" type="number" min="0" max="23" data-i18n-placeholder="hours" placeholder="Hours">
+                            <span>:</span>
+                            <input id="customMinutes" type="number" min="0" max="59" data-i18n-placeholder="minutes" placeholder="Minutes">
+                            <span>:</span>
+                            <input id="customSeconds" type="number" min="0" max="59" data-i18n-placeholder="seconds" placeholder="Seconds">
+                        </div>
+                        <button type="button" id="setCustomTimer" class="primary" data-i18n="setTime">Set Time</button>
+                    </div>
                 </div>
-
             </section>
 
         </section>
-
     </main>
 
-    <!-- =========================================
-         TOAST
-    ========================================== -->
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <div
-        id="toast"
-        class="toast">
-    </div>
-
-    <!-- =========================================
-         DELETE MODAL
-    ========================================== -->
-
-    <div
-        id="deleteModal"
-        class="delete-modal">
-
-
-        <div class="delete-modal-box">
-
-
-            <div class="delete-modal-icon">
-                ✓
-            </div>
-
-            <h3>
-                Nothing to delete
-            </h3>
-
-            <p>
-                You have no completed tasks yet.
-            </p>
-
-            <button
-                id="closeDeleteModal"
-                class="modal-close-btn">
-
-                Got it
-
-            </button>
+    <!-- "Nothing to delete" modal -->
+    <div id="deleteModal" class="delete-modal">
+        <div class="delete-modal-box" role="dialog" aria-modal="true">
+            <div class="delete-modal-icon">✓</div>
+            <h3 data-i18n="nothingDelete">Nothing to delete</h3>
+            <p data-i18n="noCompleted">You have no completed tasks yet.</p>
+            <button type="button" id="closeDeleteModal" class="modal-close-btn" data-i18n="gotIt">Got it</button>
         </div>
-
     </div>
-
-    <!-- Mouse Glow -->
 
     <div class="mouse-glow"></div>
 
-    <!-- JavaScript -->
-
     <script src="script.js"></script>
-
 </body>
 </html>
