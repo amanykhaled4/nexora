@@ -4,6 +4,8 @@ A bilingual (English / Arabic) productivity dashboard built with **vanilla HTML,
 
 🔗 **Live demo:** https://amanykhaled4.github.io/nexora/
 
+![Nexora dashboard in dark mode](docs/screenshot.png)
+
 ## Features
 
 ### ✓ Tasks
